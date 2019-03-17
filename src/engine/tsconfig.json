@@ -5,6 +5,7 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "target": "es5",
+    "lib": ["esnext", "dom"],
     "module": "es2015",
     "declaration": true,
     "noImplicitAny": true,

@@ -1,4 +1,3 @@
-import { Promise } from '../Promises';
 import { Engine } from '../Engine';
 
 /**

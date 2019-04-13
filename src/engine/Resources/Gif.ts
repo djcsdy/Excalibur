@@ -1,5 +1,4 @@
 import { Resource } from './Resource';
-import { Promise } from '../Promises';
 import { Sprite } from '../Drawing/Sprite';
 import { Texture } from './Texture';
 import { Color } from '../Drawing/Color';
@@ -22,11 +21,6 @@ export class Gif extends Resource<Texture[]> {
    * The height of the texture in pixels
    */
   public height: number;
-
-  /**
-   * A [[Promise]] that resolves when the Texture is loaded.
-   */
-  public loaded: Promise<any> = new Promise<any>();
 
   private _isLoaded: boolean = false;
   private _stream: Stream = null;
@@ -62,27 +56,29 @@ export class Gif extends Resource<Texture[]> {
    * Begins loading the texture and returns a promise to be resolved on completion
    */
   public load(): Promise<Texture[]> {
-    var complete = new Promise<Texture[]>();
-    var loaded = super.load();
-    loaded.then(
-      () => {
-        this._stream = new Stream(this.getData());
-        this._gif = new ParseGif(this._stream, this._transparentColor);
-        const promises: Promise<HTMLImageElement>[] = [];
-        for (let imageIndex: number = 0; imageIndex < this._gif.images.length; imageIndex++) {
-          const texture = new Texture(this._gif.images[imageIndex].src, false);
-          this._texture.push(texture);
-          promises.push(texture.load());
+    var complete = new Promise<Texture[]>((resolve, reject) => {
+      var loaded = super.load();
+      loaded.then(
+        () => {
+          this._stream = new Stream(this.getData());
+          this._gif = new ParseGif(this._stream, this._transparentColor);
+          const promises: Promise<HTMLImageElement>[] = [];
+          for (let imageIndex: number = 0; imageIndex < this._gif.images.length; imageIndex++) {
+            const texture = new Texture(this._gif.images[imageIndex].src, false);
+            this._texture.push(texture);
+            promises.push(texture.load());
+          }
+          Promise.all(promises).then(() => {
+            this._isLoaded = true;
+            resolve(this._texture);
+          });
+        },
+        () => {
+          reject('Error loading texture.');
         }
-        Promise.join(promises).then(() => {
-          this._isLoaded = true;
-          complete.resolve(this._texture);
-        });
-      },
-      () => {
-        complete.reject('Error loading texture.');
-      }
-    );
+      );
+    });
+
     return complete;
   }
 

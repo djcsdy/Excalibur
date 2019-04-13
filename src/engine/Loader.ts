@@ -1,7 +1,6 @@
 import { Color } from './Drawing/Color';
 import { WebAudio } from './Util/WebAudio';
 import { Logger } from './Util/Log';
-import { Promise, PromiseState } from './Promises';
 import { Engine } from './Engine';
 import { Loadable } from './Interfaces/Loadable';
 import { CanLoad } from './Interfaces/Loader';
@@ -201,11 +200,11 @@ export class Loader extends Class implements CanLoad {
     } else {
       this._playButtonShown = true;
       this._playButton.style.display = 'block';
-      let promise = new Promise();
-
-      this._playButton.addEventListener('click', () => (promise.state() === PromiseState.Pending ? promise.resolve() : promise));
-      this._playButton.addEventListener('touchend', () => (promise.state() === PromiseState.Pending ? promise.resolve() : promise));
-      this._playButton.addEventListener('pointerup', () => (promise.state() === PromiseState.Pending ? promise.resolve() : promise));
+      let promise = new Promise((resolve) => {
+        this._playButton.addEventListener('click', () => resolve());
+        this._playButton.addEventListener('touchend', () => resolve());
+        this._playButton.addEventListener('pointerup', () => resolve());
+      });
 
       return promise;
     }
@@ -221,60 +220,65 @@ export class Loader extends Class implements CanLoad {
    * that resolves when loading of all is complete
    */
   public load(): Promise<any> {
-    var complete = new Promise<any>();
     var me = this;
     if (this._resourceList.length === 0) {
-      me.showPlayButton().then(() => {
-        // Unlock audio context in chrome after user gesture
-        // https://github.com/excaliburjs/Excalibur/issues/262
-        // https://github.com/excaliburjs/Excalibur/issues/1031
-        WebAudio.unlock().then(() => {
-          me.hidePlayButton();
-          me.oncomplete.call(me);
-          complete.resolve();
+      var complete = new Promise<any>((resolve) => {
+        me.showPlayButton().then(() => {
+          // Unlock audio context in chrome after user gesture
+          // https://github.com/excaliburjs/Excalibur/issues/262
+          // https://github.com/excaliburjs/Excalibur/issues/1031
+          WebAudio.unlock().then(() => {
+            me.hidePlayButton();
+            me.oncomplete.call(me);
+            resolve();
+          });
         });
       });
+
       return complete;
     }
 
-    var progressArray = new Array<any>(this._resourceList.length);
-    var progressChunks = this._resourceList.length;
+    var complete = new Promise<any>((resolve) => {
+      var progressArray = new Array<any>(this._resourceList.length);
+      var progressChunks = this._resourceList.length;
 
-    this._resourceList.forEach((r, i) => {
-      if (this._engine) {
-        r.wireEngine(this._engine);
-      }
-      r.onprogress = function(e) {
-        var total = <number>e.total;
-        var loaded = <number>e.loaded;
-        progressArray[i] = { loaded: (loaded / total) * (100 / progressChunks), total: 100 };
-
-        var progressResult: any = progressArray.reduce(
-          function(accum, next) {
-            return { loaded: accum.loaded + next.loaded, total: 100 };
-          },
-          { loaded: 0, total: 100 }
-        );
-
-        me.onprogress.call(me, progressResult);
-      };
-      r.oncomplete = r.onerror = function() {
-        me._numLoaded++;
-        if (me._numLoaded === me._resourceCount) {
-          setTimeout(() => {
-            me.showPlayButton().then(() => {
-              // Unlock audio context in chrome after user gesture
-              // https://github.com/excaliburjs/Excalibur/issues/262
-              // https://github.com/excaliburjs/Excalibur/issues/1031
-              WebAudio.unlock().then(() => {
-                me.hidePlayButton();
-                me.oncomplete.call(me);
-                complete.resolve();
-              });
-            });
-          }, 200); // short delay in showing the button for aesthetics
+      this._resourceList.forEach((r, i) => {
+        if (this._engine) {
+          r.wireEngine(this._engine);
         }
-      };
+        r.onprogress = function(e) {
+          var total = <number>e.total;
+          var loaded = <number>e.loaded;
+          progressArray[i] = { loaded: (loaded / total) * (100 / progressChunks), total: 100 };
+
+          var progressResult: any = progressArray.reduce(
+            function(accum, next) {
+              return { loaded: accum.loaded + next.loaded, total: 100 };
+            },
+            { loaded: 0, total: 100 }
+          );
+
+          me.onprogress.call(me, progressResult);
+        };
+        r.oncomplete = r.onerror = function() {
+          me._numLoaded++;
+          if (me._numLoaded === me._resourceCount) {
+            setTimeout(() => {
+              me.showPlayButton().then(() => {
+                // Unlock audio context in chrome after user gesture
+                // https://github.com/excaliburjs/Excalibur/issues/262
+                // https://github.com/excaliburjs/Excalibur/issues/1031
+                WebAudio.unlock().then(() => {
+                  me.hidePlayButton();
+                  me.oncomplete.call(me);
+                  resolve();
+                });
+              });
+            }, 200); // short delay in showing the button for aesthetics
+          }
+        };
+      });
+      loadNext(this._resourceList, 0);
     });
 
     function loadNext(list: Loadable[], index: number) {
@@ -285,7 +289,6 @@ export class Loader extends Class implements CanLoad {
         loadNext(list, index + 1);
       });
     }
-    loadNext(this._resourceList, 0);
 
     return complete;
   }

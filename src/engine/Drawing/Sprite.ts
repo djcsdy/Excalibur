@@ -62,10 +62,10 @@ export class SpriteImpl implements Drawable {
   constructor(imageOrConfig: Texture | SpriteArgs, x: number, y: number, width: number, height: number) {
     var image = imageOrConfig;
     if (imageOrConfig && !(imageOrConfig instanceof Texture)) {
-      x = imageOrConfig.x | 0;
-      y = imageOrConfig.y | 0;
-      width = imageOrConfig.width | 0;
-      height = imageOrConfig.height | 0;
+      x = imageOrConfig.x || 0;
+      y = imageOrConfig.y || 0;
+      width = imageOrConfig.width || 0;
+      height = imageOrConfig.height || 0;
       image = imageOrConfig.image;
       if (!image) {
         const message = 'An image texture is required to contsruct a sprite';
@@ -81,7 +81,8 @@ export class SpriteImpl implements Drawable {
     this._spriteCanvas.width = width;
     this._spriteCanvas.height = height;
     this._spriteCtx = <CanvasRenderingContext2D>this._spriteCanvas.getContext('2d');
-    this._texture.loaded
+    this._texture
+      .load()
       .then(() => {
         this.width = this.width || this._texture.image.naturalWidth;
         this.height = this.height || this._texture.image.naturalHeight;
@@ -90,7 +91,7 @@ export class SpriteImpl implements Drawable {
         this._loadPixels();
         this._dirtyEffect = true;
       })
-      .error((e) => {
+      .catch((e) => {
         this.logger.error('Error loading texture ', this._texture.path, e);
       });
 

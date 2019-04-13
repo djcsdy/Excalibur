@@ -1,5 +1,4 @@
 import { Resource } from './Resource';
-import { Promise } from '../Promises';
 import { Sprite } from '../Drawing/Sprite';
 /**
  * The [[Texture]] object allows games built in Excalibur to load image resources.
@@ -18,11 +17,6 @@ export class Texture extends Resource<HTMLImageElement> {
    * The height of the texture in pixels
    */
   public height: number;
-
-  /**
-   * A [[Promise]] that resolves when the Texture is loaded.
-   */
-  public loaded: Promise<any> = new Promise<any>();
 
   private _isLoaded: boolean = false;
   private _sprite: Sprite = null;
@@ -53,36 +47,40 @@ export class Texture extends Resource<HTMLImageElement> {
    * Begins loading the texture and returns a promise to be resolved on completion
    */
   public load(): Promise<HTMLImageElement> {
-    var complete = new Promise<HTMLImageElement>();
-    if (this.path.indexOf('data:image/') > -1) {
-      this.image = new Image();
-      this.image.addEventListener('load', () => {
-        this.width = this._sprite.width = this.image.naturalWidth;
-        this.height = this._sprite.height = this.image.naturalHeight;
-        this._sprite = new Sprite(this, 0, 0, this.width, this.height);
-        this.loaded.resolve(this.image);
-        complete.resolve(this.image);
-      });
-      this.image.src = this.path;
-    } else {
-      var loaded = super.load();
-      loaded.then(
-        () => {
-          this.image = new Image();
-          this.image.addEventListener('load', () => {
-            this._isLoaded = true;
-            this.width = this._sprite.width = this.image.naturalWidth;
-            this.height = this._sprite.height = this.image.naturalHeight;
-            this.loaded.resolve(this.image);
-            complete.resolve(this.image);
-          });
-          this.image.src = super.getData();
-        },
-        () => {
-          complete.reject('Error loading texture.');
-        }
-      );
-    }
+    return this._loadPromise;
+  }
+
+  protected _load(): Promise<HTMLImageElement> {
+    var complete = new Promise<HTMLImageElement>((resolve, reject) => {
+      if (this.path.indexOf('data:image/') > -1) {
+        this.image = new Image();
+        this.image.addEventListener('load', () => {
+          this.width = this._sprite.width = this.image.naturalWidth;
+          this.height = this._sprite.height = this.image.naturalHeight;
+          this._sprite = new Sprite(this, 0, 0, this.width, this.height);
+          resolve(this.image);
+        });
+        this.image.src = this.path;
+      } else {
+        var loaded = super._load();
+        loaded.then(
+          () => {
+            this.image = new Image();
+            this.image.addEventListener('load', () => {
+              this._isLoaded = true;
+              this.width = this._sprite.width = this.image.naturalWidth;
+              this.height = this._sprite.height = this.image.naturalHeight;
+              resolve(this.image);
+            });
+            this.image.src = super.getData();
+          },
+          () => {
+            reject('Error loading texture.');
+          }
+        );
+      }
+    });
+
     return complete;
   }
 

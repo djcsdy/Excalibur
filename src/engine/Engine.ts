@@ -1,13 +1,7 @@
 import { EX_VERSION } from './';
 import './Polyfill';
-<<<<<<< HEAD
 import { CanUpdate, CanDraw, CanInitialize } from './Interfaces/LifecycleEvents';
 import { Loadable } from './Interfaces/Loadable';
-import { Promise } from './Promises';
-=======
-import { ICanUpdate, ICanDraw, ICanInitialize } from './Interfaces/LifecycleEvents';
-import { ILoadable } from './Interfaces/ILoadable';
->>>>>>> remove ex.Promise from Engine
 import { Vector } from './Algebra';
 import { UIActor } from './UIActor';
 import { Actor } from './Actor';

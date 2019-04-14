@@ -1400,9 +1400,9 @@ O|===|* >________________>\n\
    * Another option available to you to load resources into the game.
    * Immediately after calling this the game will pause and the loading screen
    * will appear.
-   * @param loader  Some [[ILoadable]] such as a [[Loader]] collection, [[Sound]], or [[Texture]].
+   * @param loader  Some [[Loadable]] such as a [[Loader]] collection, [[Sound]], or [[Texture]].
    */
-  public load(loader: ILoadable): Promise<any> {
+  public load(loader: Loadable): Promise<any> {
     var complete = new Promise<any>((resolve) => {
       this._isLoading = true;
 

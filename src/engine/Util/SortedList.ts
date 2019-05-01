@@ -2,10 +2,10 @@
  * A sorted list implementation. NOTE: this implementation is not self-balancing
  */
 export class SortedList<T> {
-  private _getComparable: Function;
+  private _getComparable: (this: T) => string | number | boolean;
   private _root: BinaryTreeNode;
 
-  constructor(getComparable: () => any) {
+  constructor(getComparable: (this: T) => string | number | boolean) {
     this._getComparable = getComparable;
   }
 

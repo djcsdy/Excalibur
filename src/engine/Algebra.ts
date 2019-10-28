@@ -239,11 +239,13 @@ export class Vector implements Clonable<Vector> {
    * @param v  The vector to cross
    */
   public cross(v: Vector): number;
-  public cross(v: any): any {
+  public cross(v: Vector | number): Vector | number {
     if (v instanceof Vector) {
       return this.x * v.y - this.y * v.x;
     } else if (typeof v === 'number') {
       return new Vector(v * this.y, -v * this.x);
+    } else {
+      throw new TypeError('Invalid argument');
     }
   }
 

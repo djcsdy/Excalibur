@@ -1023,7 +1023,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    * @param key The `enum` key of the drawing
    */
   public setDrawing(key: number): void;
-  public setDrawing(key: any): void {
+  public setDrawing(key: string | number): void {
     key = key.toString();
     if (this.currentDrawing !== this.frames[<string>key]) {
       if (this.frames[key] != null) {

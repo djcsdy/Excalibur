@@ -858,10 +858,10 @@ export class Die implements Action {
 export class CallMethod implements Action {
   public x: number;
   public y: number;
-  private _method: () => any = null;
+  private _method: () => void = null;
   private _actor: Actor = null;
   private _hasBeenCalled: boolean = false;
-  constructor(actor: Actor, method: () => any) {
+  constructor(actor: Actor, method: () => void) {
     this._actor = actor;
     this._method = method;
   }

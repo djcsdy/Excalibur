@@ -234,7 +234,7 @@ export class ActionContext {
    * action queue. This is useful if you want to execute code in after a specific
    * action, i.e An actor arrives at a destination after traversing a path
    */
-  public callMethod(method: () => any): ActionContext {
+  public callMethod(method: () => void): ActionContext {
     const len = this._queues.length;
     for (let i = 0; i < len; i++) {
       this._queues[i].add(new Actions.CallMethod(this._actors[i], method));

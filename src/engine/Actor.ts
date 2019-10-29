@@ -479,12 +479,12 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
   /**
    * The scene that the actor is in
    */
-  public scene: Scene = null;
+  public scene: Scene | null = null;
 
   /**
    * The parent of this actor
    */
-  public parent: Actor = null;
+  public parent: Actor | null = null;
 
   /**
    * The children of this actor
@@ -525,7 +525,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    * an [[Animation]], [[Sprite]], or [[Polygon]].
    * Set drawings with [[setDrawing]].
    */
-  public currentDrawing: Drawable = null;
+  public currentDrawing: Drawable | null = null;
 
   /**
    * Modify the current actor update pipeline.
@@ -1089,9 +1089,13 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
    * @param newIndex new z-index to assign
    */
   public setZIndex(newIndex: number) {
-    this.scene.cleanupDrawTree(this);
+    if (this.scene != null) {
+      this.scene.cleanupDrawTree(this);
+    }
     this._zIndex = newIndex;
-    this.scene.updateDrawTree(this);
+    if (this.scene != null) {
+      this.scene.updateDrawTree(this);
+    }
   }
 
   /**
@@ -1713,7 +1717,7 @@ export class ActorImpl extends Class implements Actionable, Eventable, PointerEv
   public getAncestors(): Actor[] {
     const path: Actor[] = [this];
     let currentActor: Actor = this;
-    let parent: Actor;
+    let parent: Actor | null;
 
     while ((parent = currentActor.parent)) {
       currentActor = parent;

@@ -474,7 +474,7 @@ export class Line {
    * @param y The known Y value of the target point
    * @returns A new point with the other calculated axis value
    */
-  public findPoint(x: number = null, y: number = null): Vector {
+  public findPoint(x: number | null = null, y: number | null = null): Vector {
     const m = this.slope;
     const b = this.intercept;
 
@@ -574,7 +574,7 @@ export class GlobalCoordinates {
       pageX = <number>xOrPos;
       pageY = <number>yOrEngine;
       pagePos = new Vector(pageX, pageY);
-      engine = engineOrUndefined;
+      engine = <Engine>engineOrUndefined;
     } else {
       pagePos = <Vector>xOrPos;
       pageX = pagePos.x;

@@ -235,11 +235,12 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
    */
   public acc: Vector = Vector.Zero;
 
-  private _cameraMoving: boolean = false;
   private _currentLerpTime: number = 0;
   private _lerpDuration: number = 1000; // 1 second
-  private _lerpStart: Vector = null;
-  private _lerpEnd: Vector = null;
+  private _lerp: null | {
+    readonly start: Vector;
+    readonly end: Vector;
+  } = null;
   private _lerpPromise: PromiseLike<Vector>;
 
   //camera effects
@@ -272,7 +273,7 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
    * Set the camera's x position (cannot be set when following an [[Actor]] or when moving)
    */
   public set x(value: number) {
-    if (!this._follow && !this._cameraMoving) {
+    if (!this._follow && this._lerp == null) {
       this.pos.x = value;
     }
   }
@@ -288,7 +289,7 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
    * Set the camera's y position (cannot be set when following an [[Actor]] or when moving)
    */
   public set y(value: number) {
-    if (!this._follow && !this._cameraMoving) {
+    if (!this._follow && this._lerp == null) {
       this.pos.y = value;
     }
   }
@@ -369,11 +370,12 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
     }
 
     this._lerpPromise = new Promise<Vector>();
-    this._lerpStart = this.getFocus().clone();
+    this._lerp = {
+      start: this.getFocus().clone(),
+      end: pos
+    };
     this._lerpDuration = duration;
-    this._lerpEnd = pos;
     this._currentLerpTime = 0;
-    this._cameraMoving = true;
     this._easing = easingFn;
 
     return this._lerpPromise;
@@ -575,23 +577,21 @@ export class Camera extends Class implements CanUpdate, CanInitialize {
       }
     }
 
-    if (this._cameraMoving) {
+    if (this._lerp != null) {
       if (this._currentLerpTime < this._lerpDuration) {
         const moveEasing = EasingFunctions.CreateVectorEasingFunction(this._easing);
 
-        const lerpPoint = moveEasing(this._currentLerpTime, this._lerpStart, this._lerpEnd, this._lerpDuration);
+        const lerpPoint = moveEasing(this._currentLerpTime, this._lerp.start, this._lerp.end, this._lerpDuration);
 
         this.pos = lerpPoint;
 
         this._currentLerpTime += delta;
       } else {
-        this.pos = this._lerpEnd;
-        const end = this._lerpEnd.clone();
+        this.pos = this._lerp.end;
+        const end = this._lerp.end.clone();
 
-        this._lerpStart = null;
-        this._lerpEnd = null;
+        this._lerp = null;
         this._currentLerpTime = 0;
-        this._cameraMoving = false;
         // Order matters here, resolve should be last so any chain promises have a clean slate
         this._lerpPromise.resolve(end);
       }

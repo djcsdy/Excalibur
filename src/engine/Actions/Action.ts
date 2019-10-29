@@ -858,8 +858,8 @@ export class Die implements Action {
 export class CallMethod implements Action {
   public x: number;
   public y: number;
-  private _method: () => any = null;
-  private _actor: Actor = null;
+  private _method: () => any;
+  private _actor: Actor;
   private _hasBeenCalled: boolean = false;
   constructor(actor: Actor, method: () => any) {
     this._actor = actor;
@@ -1030,7 +1030,7 @@ export class ActionQueue {
       this._currentAction.update(delta);
 
       if (this._currentAction.isComplete(this._actor)) {
-        this._completedActions.push(this._actions.shift());
+        this._completedActions.push(this._actions.shift()!);
       }
     }
   }

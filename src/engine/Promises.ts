@@ -10,8 +10,8 @@ export enum PromiseState {
 }
 
 export interface PromiseLike<T> {
-  then(successCallback?: (value?: T) => any, rejectCallback?: (value?: T) => any): PromiseLike<T>;
-  error(rejectCallback?: (value?: any) => any): PromiseLike<T>;
+  then(successCallback?: (value?: T) => void, rejectCallback?: (value?: T) => void): PromiseLike<T>;
+  error(rejectCallback?: (value?: any) => void): PromiseLike<T>;
 
   //Cannot define static methods on interfaces
   //wrap<T>(value?: T): IPromise<T>;
@@ -33,10 +33,10 @@ export class Promise<T> implements PromiseLike<T> {
   private _state: PromiseState = PromiseState.Pending;
   private _value: T;
   private _successCallbacks: { (value?: T): any }[] = [];
-  private _rejectCallback: (value?: any) => any = () => {
+  private _rejectCallback: (value?: any) => void = () => {
     return;
   };
-  private _errorCallback: (value?: any) => any;
+  private _errorCallback: (value?: any) => void;
 
   /**
    * Create and resolve a Promise with an optional value
@@ -123,7 +123,7 @@ export class Promise<T> implements PromiseLike<T> {
    * @param successCallback  Call on resolution of promise
    * @param rejectCallback   Call on rejection of promise
    */
-  public then(successCallback?: (value?: T) => any, rejectCallback?: (value?: any) => any) {
+  public then(successCallback?: (value?: T) => void, rejectCallback?: (value?: any) => void) {
     if (successCallback) {
       this._successCallbacks.push(successCallback);
 
@@ -156,7 +156,7 @@ export class Promise<T> implements PromiseLike<T> {
    * Add an error callback to the promise
    * @param errorCallback  Call if there was an error in a callback
    */
-  public error(errorCallback?: (value?: any) => any) {
+  public error(errorCallback?: (value?: any) => void) {
     if (errorCallback) {
       this._errorCallback = errorCallback;
     }

@@ -394,7 +394,7 @@ export class Collection<T> {
    * Iterate over every element in the collection
    * @param func  Callback to call for each element passing a reference to the element and its index, returned values are ignored
    */
-  public forEach(func: (element: T, index: number) => any) {
+  public forEach(func: (element: T, index: number) => void) {
     let i = 0;
     const count = this.count();
     for (i; i < count; i++) {
